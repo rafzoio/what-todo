@@ -35,7 +35,7 @@ const Home: NextPage = () => {
     if (isLoading) return <div>Fetching messages...</div>;
 
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 p-2">
         {todos?.map((todo, index) => {
           return (
             <div
@@ -48,10 +48,7 @@ const Home: NextPage = () => {
                   todo.isDone ? "text-green-700" : ""
                 }`}
                 onClick={() => {
-                  doToggle.mutate({
-                    id: todo.id,
-                    isDone: todo.isDone,
-                  });
+                  doToggle.mutate(todo);
                 }}
               >
                 {todo.name}
@@ -86,33 +83,35 @@ const Home: NextPage = () => {
     if (status !== "authenticated") return null;
 
     return (
-      <form
-        className="flex gap-2"
-        onSubmit={(event) => {
-          event.preventDefault();
-          postMessage.mutate({
-            name: name,
-            isDone: false,
-          });
-          setName("");
-        }}
-      >
-        <input
-          type="text"
-          className="rounded-md border-2 border-zinc-800 bg-neutral-900 px-4 py-2 focus:outline-none"
-          placeholder="New todo..."
-          minLength={2}
-          maxLength={100}
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-        />
-        <button
-          type="submit"
-          className="rounded-md border-2 border-zinc-800 p-2 focus:outline-none"
+      <div className="flex justify-center">
+        <form
+          className="flex items-end gap-1"
+          onSubmit={(event) => {
+            event.preventDefault();
+            postMessage.mutate({
+              name: name,
+              isDone: false,
+            });
+            setName("");
+          }}
         >
-          Submit
-        </button>
-      </form>
+          <input
+            type="text"
+            className="rounded-md border-2 border-white bg-neutral-900 px-4 py-2 hover:border-zinc-500"
+            placeholder="New todo..."
+            minLength={2}
+            maxLength={100}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
+          <button
+            type="submit"
+            className="rounded-md border-2 border-white p-2 hover:border-zinc-500"
+          >
+            Submit
+          </button>
+        </form>
+      </div>
     );
   };
 
@@ -154,8 +153,8 @@ const Home: NextPage = () => {
       <div className="flex flex-col gap-5 pt-5 ">
         {session && (
           <>
-            <TodoItems />
             <NewTodo />
+            <TodoItems />
           </>
         )}
       </div>
