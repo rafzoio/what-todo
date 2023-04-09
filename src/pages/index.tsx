@@ -12,30 +12,50 @@ const Home: NextPage = () => {
   }
 
   const TodoItems = () => {
-    const { data: todoItems, isLoading } = api.todo.getAll.useQuery();
+    const { data: todos, isLoading } = api.todo.getAll.useQuery();
 
-    const toggleTodo = api.todo.toggleTodo.useMutation();
+    const utils = api.useContext();
 
-    const doToggle = (todo: todo) => {
-      toggleTodo.mutate({ id: todo.id, isDone: todo.isDone });
-    };
+    const doToggle = api.todo.toggleTodo.useMutation({
+      onMutate: async (updatedTodo: todo) => {
+        await utils.todo.getAll.cancel();
+        utils.todo.getAll.setData(undefined, (todos) =>
+          todos?.map((todo) =>
+            todo.id === updatedTodo.id
+              ? { ...todo, isDone: !todo.isDone }
+              : todo
+          )
+        );
+      },
+      onSettled: async () => {
+        await utils.todo.getAll.invalidate();
+      },
+    });
 
     if (isLoading) return <div>Fetching messages...</div>;
 
     return (
       <div className="flex flex-col gap-4">
-        {todoItems?.map((todo, index) => {
+        {todos?.map((todo, index) => {
           return (
-            <div className="flex flex-row gap-4" key={index}>
+            <div
+              className="flex transform flex-row 
+                  gap-4 text-2xl transition-transform duration-200 hover:translate-x-2"
+              key={index}
+            >
               <p
+                className={`cursor-pointer ${
+                  todo.isDone ? "text-green-700" : ""
+                }`}
                 onClick={() => {
-                  doToggle(todo);
-                  !todo.isDone;
+                  doToggle.mutate({
+                    id: todo.id,
+                    isDone: todo.isDone,
+                  });
                 }}
               >
                 {todo.name}
               </p>
-              {todo.isDone && <p> . . . done</p>}
             </div>
           );
         })}
@@ -48,11 +68,11 @@ const Home: NextPage = () => {
 
     const utils = api.useContext();
     const postMessage = api.todo.postTodo.useMutation({
-      onMutate: async (newTodo) => {
+      onMutate: async (newTodo: todo) => {
         await utils.todo.getAll.cancel();
-        utils.todo.getAll.setData(undefined, (todoItems) => {
-          if (todoItems) {
-            return [newTodo, ...todoItems];
+        utils.todo.getAll.setData(undefined, (todos) => {
+          if (todos) {
+            return [newTodo, ...todos];
           } else {
             return [newTodo];
           }
@@ -98,21 +118,25 @@ const Home: NextPage = () => {
 
   return (
     <main className="flex flex-col items-center">
-      <h1 className="pt-4 text-5xl">WhatToDo</h1>
-      <div className="pt-10">
+      <h1 className="pt-4 text-8xl">WhatToDo</h1>
+      <div className="pt-4">
         <div>
           {session ? (
             <>
-              <p className="mb-4 text-center">hi {session.user?.name}</p>
-              <button
-                type="button"
-                className="mx-auto block rounded-md bg-neutral-800 px-6 py-2 text-center hover:bg-neutral-700"
-                onClick={() => {
-                  signOut().catch(console.log);
-                }}
-              >
-                Logout
-              </button>
+              <div className="inline-block">
+                <div className="group relative flex flex-row items-center">
+                  <p className="mb-4 text-center">hi {session.user?.name}</p>
+                  <button
+                    type="button"
+                    className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform rounded bg-neutral-500 px-3 py-1 text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                    onClick={() => {
+                      signOut().catch(console.log);
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              </div>
             </>
           ) : (
             <button
@@ -128,8 +152,12 @@ const Home: NextPage = () => {
         </div>
       </div>
       <div className="flex flex-col gap-5 pt-5 ">
-        <TodoItems />
-        <NewTodo />
+        {session && (
+          <>
+            <TodoItems />
+            <NewTodo />
+          </>
+        )}
       </div>
     </main>
   );
