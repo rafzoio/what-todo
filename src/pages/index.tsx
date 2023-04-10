@@ -17,14 +17,12 @@ const Home: NextPage = () => {
 
     const utils = api.useContext();
 
-    const doToggle = api.todo.toggleTodo.useMutation({
-      onMutate: async (updatedTodo: todo) => {
+    const { mutate: doneMutation } = api.todo.toggleTodo.useMutation({
+      onMutate: async ({ id, isDone }) => {
         await utils.todo.getAll.cancel();
         utils.todo.getAll.setData(undefined, (todos) =>
           todos?.map((todo) =>
-            todo.id === updatedTodo.id
-              ? { ...todo, isDone: !todo.isDone }
-              : todo
+            todo.id === id ? { ...todo, isDone: !isDone } : todo
           )
         );
       },
@@ -33,12 +31,15 @@ const Home: NextPage = () => {
       },
     });
 
-    const doDelete = api.todo.deleteTodo.useMutation({
-      onMutate: async (deletedTodo: todo) => {
+    const { mutate: deleteMutation } = api.todo.deleteTodo.useMutation({
+      onMutate: async (deletedId) => {
         await utils.todo.getAll.cancel();
         utils.todo.getAll.setData(undefined, (todos) =>
-          todos?.filter((todo) => todo.id !== deletedTodo.id)
+          todos?.filter((todo) => todo.id !== deletedId)
         );
+
+        const prev = utils.todo.getAll.getData();
+        return { prev };
       },
       onSettled: async () => {
         await utils.todo.getAll.invalidate();
@@ -61,7 +62,7 @@ const Home: NextPage = () => {
                   todo.isDone ? "text-green-700" : ""
                 }`}
                 onClick={() => {
-                  doToggle.mutate(todo);
+                  doneMutation({ id: todo.id, isDone: todo.isDone });
                 }}
               >
                 {todo.name}
@@ -69,7 +70,7 @@ const Home: NextPage = () => {
 
               <Image
                 onClick={() => {
-                  doDelete.mutate(todo);
+                  deleteMutation(todo.id);
                 }}
                 className="pt-1"
                 src="/delete.svg"
@@ -88,15 +89,18 @@ const Home: NextPage = () => {
     const [name, setName] = useState("");
 
     const utils = api.useContext();
-    const postMessage = api.todo.postTodo.useMutation({
-      onMutate: async (newTodo: todo) => {
+    const { mutate: postMutation } = api.todo.postTodo.useMutation({
+      onMutate: async (name) => {
         await utils.todo.getAll.cancel();
-        utils.todo.getAll.setData(undefined, (todos) => {
-          if (todos) {
-            return [newTodo, ...todos];
-          } else {
-            return [newTodo];
-          }
+        utils.todo.getAll.setData(undefined, (prev) => {
+          const optimisticTodo: todo = {
+            id: "optimistic-todo-id",
+            createdAt: new Date(),
+            name: name,
+            isDone: false,
+          };
+          if (!prev) return [optimisticTodo];
+          return [...prev, optimisticTodo];
         });
       },
       onSettled: async () => {
@@ -112,10 +116,7 @@ const Home: NextPage = () => {
           className="flex items-end gap-1"
           onSubmit={(event) => {
             event.preventDefault();
-            postMessage.mutate({
-              name: name,
-              isDone: false,
-            });
+            postMutation(name);
             setName("");
           }}
         >

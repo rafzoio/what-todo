@@ -3,18 +3,13 @@ import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const todoRouter = createTRPCRouter({
   postTodo: protectedProcedure
-    .input(
-      z.object({
-        name: z.string(),
-        isDone: z.boolean(),
-      })
-    )
+    .input(z.string())
     .mutation(async ({ ctx, input }) => {
       try {
         await ctx.prisma.todo.create({
           data: {
-            name: input.name,
-            isDone: input.isDone,
+            name: input,
+            isDone: false,
           },
         });
       } catch (error) {
@@ -61,16 +56,12 @@ export const todoRouter = createTRPCRouter({
         }
     }),
     deleteTodo: protectedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-      })
-    )
+    .input(z.string())
     .mutation(async ({ctx, input}) => {
       try {
         return await ctx.prisma.todo.delete({
           where: {
-            id: input.id
+            id: input
           }})
         } catch (error) {
           console.log("error", error);
