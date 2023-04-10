@@ -100,7 +100,7 @@ const Home: NextPage = () => {
             isDone: false,
           };
           if (!prev) return [optimisticTodo];
-          return [...prev, optimisticTodo];
+          return [optimisticTodo, ...prev];
         });
       },
       onSettled: async () => {
