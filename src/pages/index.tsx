@@ -1,6 +1,7 @@
 import { type todo } from "@prisma/client";
 import { type NextPage } from "next";
 import { signIn, signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 import { useState } from "react";
 import { api } from "../utils/api";
 
@@ -32,6 +33,18 @@ const Home: NextPage = () => {
       },
     });
 
+    const doDelete = api.todo.deleteTodo.useMutation({
+      onMutate: async (deletedTodo: todo) => {
+        await utils.todo.getAll.cancel();
+        utils.todo.getAll.setData(undefined, (todos) =>
+          todos?.filter((todo) => todo.id !== deletedTodo.id)
+        );
+      },
+      onSettled: async () => {
+        await utils.todo.getAll.invalidate();
+      },
+    });
+
     if (isLoading) return <div>Fetching messages...</div>;
 
     return (
@@ -39,7 +52,7 @@ const Home: NextPage = () => {
         {todos?.map((todo, index) => {
           return (
             <div
-              className="flex transform flex-row 
+              className="flex transform flex-row items-center 
                   gap-4 text-2xl transition-transform duration-200 hover:translate-x-2"
               key={index}
             >
@@ -53,6 +66,17 @@ const Home: NextPage = () => {
               >
                 {todo.name}
               </p>
+
+              <Image
+                onClick={() => {
+                  doDelete.mutate(todo);
+                }}
+                className="pt-1"
+                src="/delete.svg"
+                alt="White cross delete icon"
+                width={24}
+                height={24}
+              />
             </div>
           );
         })}
@@ -98,9 +122,9 @@ const Home: NextPage = () => {
           <input
             type="text"
             className="rounded-md border-2 border-white bg-neutral-900 px-4 py-2 hover:border-zinc-500"
-            placeholder="New todo..."
+            placeholder="Something to do..."
             minLength={2}
-            maxLength={100}
+            maxLength={20}
             value={name}
             onChange={(event) => setName(event.target.value)}
           />
@@ -108,7 +132,7 @@ const Home: NextPage = () => {
             type="submit"
             className="rounded-md border-2 border-white p-2 hover:border-zinc-500"
           >
-            Submit
+            Add
           </button>
         </form>
       </div>
