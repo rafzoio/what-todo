@@ -3,7 +3,11 @@ import { type NextPage } from "next";
 import { useState } from "react";
 import { api } from "../../utils/api";
 
-const AddTodo: NextPage = ({ status }) => {
+interface Props {
+  status: string;
+}
+
+const AddTodo: NextPage<Props> = ({}) => {
   const [name, setName] = useState("");
 
   const utils = api.useContext();
