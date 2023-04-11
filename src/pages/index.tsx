@@ -2,8 +2,9 @@ import { type todo } from "@prisma/client";
 import { type NextPage } from "next";
 import { signIn, signOut, useSession } from "next-auth/react";
 import Image from "next/image";
-import { useState } from "react";
+import { Toaster } from "react-hot-toast";
 import { api } from "../utils/api";
+import AddTodo from "./components/AddTodo";
 
 const Home: NextPage = () => {
   const { data: session, status } = useSession();
@@ -37,6 +38,7 @@ const Home: NextPage = () => {
         utils.todo.getAll.setData(undefined, (todos) =>
           todos?.filter((todo) => todo.id !== deletedId)
         );
+        toast.success("Todo deleted");
 
         const prev = utils.todo.getAll.getData();
         return { prev };
@@ -50,7 +52,7 @@ const Home: NextPage = () => {
 
     return (
       <div className="flex flex-col gap-4 p-2">
-        {todos?.map((todo, index) => {
+        {todos?.map((todo: todo, index) => {
           return (
             <div
               className="flex transform flex-row items-center 
@@ -85,63 +87,9 @@ const Home: NextPage = () => {
     );
   };
 
-  const NewTodo = () => {
-    const [name, setName] = useState("");
-
-    const utils = api.useContext();
-    const { mutate: postMutation } = api.todo.postTodo.useMutation({
-      onMutate: async (name) => {
-        await utils.todo.getAll.cancel();
-        utils.todo.getAll.setData(undefined, (prev) => {
-          const optimisticTodo: todo = {
-            id: "optimistic-todo-id",
-            createdAt: new Date(),
-            name: name,
-            isDone: false,
-          };
-          if (!prev) return [optimisticTodo];
-          return [optimisticTodo, ...prev];
-        });
-      },
-      onSettled: async () => {
-        await utils.todo.getAll.invalidate();
-      },
-    });
-
-    if (status !== "authenticated") return null;
-
-    return (
-      <div className="flex justify-center">
-        <form
-          className="flex items-end gap-1"
-          onSubmit={(event) => {
-            event.preventDefault();
-            postMutation(name);
-            setName("");
-          }}
-        >
-          <input
-            type="text"
-            className="rounded-md border-2 border-white bg-neutral-900 px-4 py-2 hover:border-zinc-500"
-            placeholder="Something to do..."
-            minLength={2}
-            maxLength={20}
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-          />
-          <button
-            type="submit"
-            className="rounded-md border-2 border-white p-2 hover:border-zinc-500"
-          >
-            Add
-          </button>
-        </form>
-      </div>
-    );
-  };
-
   return (
     <main className="flex flex-col items-center">
+      <Toaster position="bottom-right" />
       <h1 className="pt-4 text-8xl">WhatToDo</h1>
       <div className="pt-4">
         <div>
@@ -178,7 +126,7 @@ const Home: NextPage = () => {
       <div className="flex flex-col gap-5 pt-5 ">
         {session && (
           <>
-            <NewTodo />
+            <AddTodo status={status} />
             <TodoItems />
           </>
         )}
