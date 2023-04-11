@@ -50,7 +50,7 @@ const Home: NextPage = () => {
       <div className="flex flex-col gap-5 pt-5 ">
         {session && (
           <>
-            <AddTodo status={status} />
+            <AddTodo />
             <TodoItems />
           </>
         )}

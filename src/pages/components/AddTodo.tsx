@@ -1,15 +1,12 @@
 import { type todo } from "@prisma/client";
 import { type NextPage } from "next";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { api } from "../../utils/api";
 
-interface Props {
-  status: string;
-}
-
-const AddTodo: NextPage<Props> = ({}) => {
+const AddTodo: NextPage = () => {
   const [name, setName] = useState("");
-
+  const { status } = useSession();
   const utils = api.useContext();
   const { mutate: postMutation } = api.todo.postTodo.useMutation({
     onMutate: async (name) => {
