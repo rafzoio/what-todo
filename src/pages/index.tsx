@@ -34,15 +34,18 @@ const Home: NextPage = () => {
               </div>
             </>
           ) : (
-            <button
-              type="button"
-              className="mx-auto block rounded-md bg-neutral-500 px-6 py-3 text-center text-white hover:bg-neutral-700"
-              onClick={() => {
-                signIn("discord").catch(console.log);
-              }}
-            >
-              Login with Discord
-            </button>
+            <div>
+              <h1 className="p-4 text-7xl">What To Do...</h1>
+              <button
+                type="button"
+                className="mx-auto block rounded-md bg-neutral-500 px-6 py-3 text-center text-white hover:bg-neutral-700"
+                onClick={() => {
+                  signIn("discord").catch(console.log);
+                }}
+              >
+                Login with Discord
+              </button>
+            </div>
           )}
         </div>
       </div>
