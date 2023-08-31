@@ -45,26 +45,26 @@ const TodoItems: NextPage = ({}) => {
       {todos?.map((todo, index) => {
         return (
           <div
-            className="flex transform flex-row items-center 
-                  gap-4 text-2xl transition-transform duration-200 hover:translate-x-2"
+            className="flex flex-row items-center 
+                  gap-4 text-2xl "
             key={index}
           >
             <p
-              className={`cursor-pointer ${
-                todo.isDone ? "text-green-700" : ""
+              className={`transform cursor-pointer transition-transform duration-200 hover:translate-x-2 ${
+                todo.isDone ? "font-weight-200 text-green-700" : ""
               }`}
               onClick={() => {
                 doneMutation({ id: todo.id, isDone: todo.isDone });
               }}
             >
-              {todo.name}
+              {"• " + todo.name}
             </p>
 
             <Image
               onClick={() => {
                 deleteMutation(todo.id);
               }}
-              className="pt-1"
+              className="float-right transition-transform duration-300 hover:rotate-90"
               src="/delete.svg"
               alt="White cross delete icon"
               width={24}

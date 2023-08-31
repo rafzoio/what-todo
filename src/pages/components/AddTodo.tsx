@@ -41,7 +41,7 @@ const AddTodo: NextPage = () => {
       >
         <input
           type="text"
-          className="rounded-md border-2 border-white bg-neutral-900 px-4 py-2 hover:border-zinc-500"
+          className="rounded-md border-2 border-white bg-neutral-900 px-4 py-2 text-white hover:border-zinc-500"
           placeholder="Something to do..."
           minLength={2}
           maxLength={30}
@@ -50,7 +50,7 @@ const AddTodo: NextPage = () => {
         />
         <button
           type="submit"
-          className="rounded-md border-2 border-white p-2 hover:border-zinc-500"
+          className="rounded-md border-2 border-white bg-neutral-900 px-4 py-2 text-white  hover:bg-slate-700"
         >
           Add
         </button>
